@@ -26,54 +26,65 @@ const ENV_VAR_MAP: Record<ProviderId, string> = {
   ollama: '' // Ollama doesn't need API key
 }
 
-// Available models configuration
+// Available models configuration (updated Jan 2026)
 const AVAILABLE_MODELS: ModelConfig[] = [
+  // Anthropic Claude 4.5 series (latest as of Jan 2026)
   {
-    id: 'claude-sonnet-4-20250514',
-    name: 'Claude Sonnet 4',
+    id: 'claude-opus-4-5-20251101',
+    name: 'Claude Opus 4.5',
     provider: 'anthropic',
-    model: 'claude-sonnet-4-20250514',
-    description: 'Latest Claude model, best for complex tasks',
+    model: 'claude-opus-4-5-20251101',
+    description: 'Most capable, excels at complex reasoning and coding',
     available: true
   },
   {
-    id: 'claude-3-5-sonnet-20241022',
-    name: 'Claude 3.5 Sonnet',
+    id: 'claude-sonnet-4-5-20250929',
+    name: 'Claude Sonnet 4.5',
     provider: 'anthropic',
-    model: 'claude-3-5-sonnet-20241022',
-    description: 'Excellent balance of speed and capability',
+    model: 'claude-sonnet-4-5-20250929',
+    description: 'Balanced performance and efficiency, great for agents',
     available: true
   },
   {
-    id: 'claude-3-5-haiku-20241022',
-    name: 'Claude 3.5 Haiku',
+    id: 'claude-haiku-4-5-20251001',
+    name: 'Claude Haiku 4.5',
     provider: 'anthropic',
-    model: 'claude-3-5-haiku-20241022',
-    description: 'Fast and efficient for simpler tasks',
+    model: 'claude-haiku-4-5-20251001',
+    description: 'Fast and cost-effective for real-time tasks',
     available: true
   },
+  // OpenAI GPT-5.1/4.1 series (latest as of Jan 2026)
   {
-    id: 'gpt-4o',
-    name: 'GPT-4o',
+    id: 'gpt-5.1',
+    name: 'GPT-5.1',
     provider: 'openai',
-    model: 'gpt-4o',
-    description: 'OpenAI flagship model',
+    model: 'gpt-5.1',
+    description: 'OpenAI flagship model with advanced reasoning',
     available: true
   },
   {
-    id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
+    id: 'gpt-4.1',
+    name: 'GPT-4.1',
     provider: 'openai',
-    model: 'gpt-4o-mini',
-    description: 'Smaller, faster GPT-4o variant',
+    model: 'gpt-4.1',
+    description: 'Excellent balance of capability and cost',
     available: true
   },
   {
-    id: 'gemini-2.0-flash',
-    name: 'Gemini 2.0 Flash',
+    id: 'gpt-4.1-mini',
+    name: 'GPT-4.1 Mini',
+    provider: 'openai',
+    model: 'gpt-4.1-mini',
+    description: 'Lightweight and cost-efficient',
+    available: true
+  },
+  // Google Gemini 3 series (latest as of Jan 2026)
+  {
+    id: 'gemini-3-flash-preview',
+    name: 'Gemini 3 Flash',
     provider: 'google',
-    model: 'gemini-2.0-flash',
-    description: 'Google fast model',
+    model: 'gemini-3-flash-preview',
+    description: 'Fast, 3x faster than 2.5 Pro with 1M context',
     available: true
   }
 ]
@@ -82,7 +93,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
   // List available models
   ipcMain.handle('models:list', async () => {
     // Check which models have API keys configured
-    return AVAILABLE_MODELS.map(model => ({
+    return AVAILABLE_MODELS.map((model) => ({
       ...model,
       available: hasApiKey(model.provider)
     }))
@@ -90,7 +101,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
 
   // Get default model
   ipcMain.handle('models:getDefault', async () => {
-    return store.get('defaultModel', 'claude-sonnet-4-20250514') as string
+    return store.get('defaultModel', 'claude-sonnet-4-5-20250929') as string
   })
 
   // Set default model
@@ -99,15 +110,18 @@ export function registerModelHandlers(ipcMain: IpcMain) {
   })
 
   // Set API key for a provider
-  ipcMain.handle('models:setApiKey', async (_event, { provider, apiKey }: { provider: string; apiKey: string }) => {
-    store.set(`apiKeys.${provider}`, apiKey)
-    
-    // Also set as environment variable for the current session
-    const envVar = ENV_VAR_MAP[provider as ProviderId]
-    if (envVar) {
-      process.env[envVar] = apiKey
+  ipcMain.handle(
+    'models:setApiKey',
+    async (_event, { provider, apiKey }: { provider: string; apiKey: string }) => {
+      store.set(`apiKeys.${provider}`, apiKey)
+
+      // Also set as environment variable for the current session
+      const envVar = ENV_VAR_MAP[provider as ProviderId]
+      if (envVar) {
+        process.env[envVar] = apiKey
+      }
     }
-  })
+  )
 
   // Get API key for a provider
   ipcMain.handle('models:getApiKey', async (_event, provider: string) => {
@@ -117,7 +131,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
   // Delete API key for a provider
   ipcMain.handle('models:deleteApiKey', async (_event, provider: string) => {
     store.delete(`apiKeys.${provider}`)
-    
+
     // Also clear environment variable for the current session
     const envVar = ENV_VAR_MAP[provider as ProviderId]
     if (envVar) {
@@ -127,7 +141,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
 
   // List providers with their API key status
   ipcMain.handle('models:listProviders', async () => {
-    return PROVIDERS.map(provider => ({
+    return PROVIDERS.map((provider) => ({
       ...provider,
       hasApiKey: hasApiKey(provider.id)
     }))
@@ -144,43 +158,46 @@ export function registerModelHandlers(ipcMain: IpcMain) {
       // Fallback to global setting for backwards compatibility
       return store.get('workspacePath', null) as string | null
     }
-    
+
     // Get from thread metadata via threads:get
     const { getThread } = await import('../db')
     const thread = getThread(threadId)
     if (!thread?.metadata) return null
-    
+
     const metadata = JSON.parse(thread.metadata)
     return metadata.workspacePath || null
   })
 
   // Set workspace path for a thread (stores in thread metadata)
-  ipcMain.handle('workspace:set', async (_event, { threadId, path }: { threadId?: string; path: string | null }) => {
-    if (!threadId) {
-      // Fallback to global setting
-      if (path) {
-        store.set('workspacePath', path)
-      } else {
-        store.delete('workspacePath')
+  ipcMain.handle(
+    'workspace:set',
+    async (_event, { threadId, path }: { threadId?: string; path: string | null }) => {
+      if (!threadId) {
+        // Fallback to global setting
+        if (path) {
+          store.set('workspacePath', path)
+        } else {
+          store.delete('workspacePath')
+        }
+        setWorkspacePath(path)
+        return path
       }
+
+      // Update thread metadata
+      const { getThread, updateThread } = await import('../db')
+      const thread = getThread(threadId)
+      if (!thread) return null
+
+      const metadata = thread.metadata ? JSON.parse(thread.metadata) : {}
+      metadata.workspacePath = path
+
+      updateThread(threadId, { metadata: JSON.stringify(metadata) })
+
+      // Also update runtime for current sync
       setWorkspacePath(path)
       return path
     }
-    
-    // Update thread metadata
-    const { getThread, updateThread } = await import('../db')
-    const thread = getThread(threadId)
-    if (!thread) return null
-    
-    const metadata = thread.metadata ? JSON.parse(thread.metadata) : {}
-    metadata.workspacePath = path
-    
-    updateThread(threadId, { metadata: JSON.stringify(metadata) })
-    
-    // Also update runtime for current sync
-    setWorkspacePath(path)
-    return path
-  })
+  )
 
   // Select workspace folder via dialog (for a specific thread)
   ipcMain.handle('workspace:select', async (_event, threadId?: string) => {
@@ -195,7 +212,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
     }
 
     const selectedPath = result.filePaths[0]
-    
+
     if (threadId) {
       // Store in thread metadata
       const { getThread, updateThread } = await import('../db')
@@ -209,7 +226,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
       // Fallback to global
       store.set('workspacePath', selectedPath)
     }
-    
+
     setWorkspacePath(selectedPath)
     return selectedPath
   })
@@ -217,12 +234,12 @@ export function registerModelHandlers(ipcMain: IpcMain) {
   // Sync files from thread state to disk (on-demand)
   ipcMain.handle('workspace:syncToDisk', async (_event, { threadId }: { threadId: string }) => {
     const { getThread, updateThread } = await import('../db')
-    
+
     // Get workspace path from thread metadata first
     const thread = getThread(threadId)
     const metadata = thread?.metadata ? JSON.parse(thread.metadata) : {}
     let targetPath = metadata.workspacePath as string | null
-    
+
     // If no path set for this thread, prompt for one
     if (!targetPath) {
       const result = await dialog.showOpenDialog({
@@ -236,7 +253,7 @@ export function registerModelHandlers(ipcMain: IpcMain) {
       }
 
       targetPath = result.filePaths[0]
-      
+
       // Save to thread metadata
       metadata.workspacePath = targetPath
       updateThread(threadId, { metadata: JSON.stringify(metadata) })
@@ -248,15 +265,15 @@ export function registerModelHandlers(ipcMain: IpcMain) {
       const checkpointer = await getCheckpointer()
       const config = { configurable: { thread_id: threadId } }
       const checkpoint = await checkpointer.getTuple(config)
-      
+
       if (!checkpoint?.checkpoint?.channel_values) {
         return { success: false, error: 'No checkpoint found for thread' }
       }
 
-      const state = checkpoint.checkpoint.channel_values as { 
-        files?: Record<string, { content?: string[]; created_at?: string; modified_at?: string }> 
+      const state = checkpoint.checkpoint.channel_values as {
+        files?: Record<string, { content?: string[]; created_at?: string; modified_at?: string }>
       }
-      
+
       if (!state.files || Object.keys(state.files).length === 0) {
         return { success: false, error: 'No files to sync' }
       }
@@ -270,35 +287,106 @@ export function registerModelHandlers(ipcMain: IpcMain) {
           // Convert virtual path to disk path
           const relativePath = filePath.startsWith('/') ? filePath.slice(1) : filePath
           const fullPath = path.join(targetPath, relativePath)
-          
+
           // Ensure directory exists
           await fs.mkdir(path.dirname(fullPath), { recursive: true })
-          
+
           // Write file content (join lines with newlines)
-          const content = Array.isArray(fileData.content) 
-            ? fileData.content.join('\n') 
+          const content = Array.isArray(fileData.content)
+            ? fileData.content.join('\n')
             : String(fileData.content || '')
           await fs.writeFile(fullPath, content, 'utf-8')
-          
+
           synced.push(filePath)
         } catch (e) {
           errors.push(`${filePath}: ${e instanceof Error ? e.message : 'Unknown error'}`)
         }
       }
 
-      return { 
-        success: true, 
-        synced, 
+      return {
+        success: true,
+        synced,
         errors,
-        targetPath 
+        targetPath
       }
     } catch (e) {
-      return { 
-        success: false, 
-        error: e instanceof Error ? e.message : 'Unknown error' 
+      return {
+        success: false,
+        error: e instanceof Error ? e.message : 'Unknown error'
       }
     }
   })
+
+  // Load files from disk into the workspace view (read-only, doesn't modify agent state)
+  ipcMain.handle(
+    'workspace:loadFromDisk',
+    async (_event, { threadId }: { threadId: string }) => {
+      const { getThread } = await import('../db')
+
+      // Get workspace path from thread metadata
+      const thread = getThread(threadId)
+      const metadata = thread?.metadata ? JSON.parse(thread.metadata) : {}
+      const workspacePath = metadata.workspacePath as string | null
+
+      if (!workspacePath) {
+        return { success: false, error: 'No workspace folder linked', files: [] }
+      }
+
+      try {
+        const files: Array<{
+          path: string
+          is_dir: boolean
+          size?: number
+          modified_at?: string
+        }> = []
+
+        // Recursively read directory
+        async function readDir(dirPath: string, relativePath: string = ''): Promise<void> {
+          const entries = await fs.readdir(dirPath, { withFileTypes: true })
+
+          for (const entry of entries) {
+            // Skip hidden files and common non-project files
+            if (entry.name.startsWith('.') || entry.name === 'node_modules') {
+              continue
+            }
+
+            const fullPath = path.join(dirPath, entry.name)
+            const relPath = relativePath ? `${relativePath}/${entry.name}` : entry.name
+
+            if (entry.isDirectory()) {
+              files.push({
+                path: '/' + relPath,
+                is_dir: true
+              })
+              await readDir(fullPath, relPath)
+            } else {
+              const stat = await fs.stat(fullPath)
+              files.push({
+                path: '/' + relPath,
+                is_dir: false,
+                size: stat.size,
+                modified_at: stat.mtime.toISOString()
+              })
+            }
+          }
+        }
+
+        await readDir(workspacePath)
+
+        return {
+          success: true,
+          files,
+          workspacePath
+        }
+      } catch (e) {
+        return {
+          success: false,
+          error: e instanceof Error ? e.message : 'Unknown error',
+          files: []
+        }
+      }
+    }
+  )
 }
 
 function hasApiKey(provider: string): boolean {
@@ -321,5 +409,5 @@ export function getApiKey(provider: string): string | undefined {
 }
 
 export function getDefaultModel(): string {
-  return store.get('defaultModel', 'claude-sonnet-4-20250514') as string
+  return store.get('defaultModel', 'claude-sonnet-4-5-20250929') as string
 }

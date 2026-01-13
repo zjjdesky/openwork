@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAppStore } from '@/lib/store'
 import { MessageBubble } from './MessageBubble'
 import { ModelSwitcher } from './ModelSwitcher'
+import { WorkspacePicker } from './WorkspacePicker'
 import { ApprovalDialog } from '@/components/hitl/ApprovalDialog'
 import { ElectronIPCTransport } from '@/lib/electron-transport'
 import type { Message } from '@/types'
@@ -326,8 +327,10 @@ export function ChatContainer({ threadId }: ChatContainerProps): React.JSX.Eleme
                 )}
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <ModelSwitcher />
+              <div className="w-px h-4 bg-border" />
+              <WorkspacePicker />
             </div>
           </div>
         </form>

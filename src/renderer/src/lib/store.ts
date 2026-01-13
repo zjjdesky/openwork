@@ -95,7 +95,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   subagents: [],
   models: [],
   providers: [],
-  currentModel: 'claude-sonnet-4-20250514',
+  currentModel: 'claude-sonnet-4-5-20250929',
   rightPanelTab: 'todos',
   settingsOpen: false,
   sidebarCollapsed: false,

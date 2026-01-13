@@ -160,6 +160,19 @@ const api = {
       error?: string
     }> => {
       return ipcRenderer.invoke('workspace:syncToDisk', { threadId })
+    },
+    loadFromDisk: (threadId: string): Promise<{
+      success: boolean
+      files: Array<{
+        path: string
+        is_dir: boolean
+        size?: number
+        modified_at?: string
+      }>
+      workspacePath?: string
+      error?: string
+    }> => {
+      return ipcRenderer.invoke('workspace:loadFromDisk', { threadId })
     }
   }
 }

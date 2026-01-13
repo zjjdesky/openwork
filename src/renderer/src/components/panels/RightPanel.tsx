@@ -434,20 +434,28 @@ function TaskItem({ todo }: { todo: Todo }) {
 }
 
 function FilesContent() {
-  const { workspaceFiles, workspacePath, currentThreadId, setWorkspacePath } = useAppStore()
+  const { workspaceFiles, workspacePath, currentThreadId, setWorkspacePath, setWorkspaceFiles } = useAppStore()
   const [syncing, setSyncing] = useState(false)
   const [syncSuccess, setSyncSuccess] = useState(false)
   
-  // Load workspace path for current thread
+  // Load workspace path and files for current thread
   useEffect(() => {
-    async function loadWorkspacePath() {
+    async function loadWorkspace() {
       if (currentThreadId) {
         const path = await window.api.workspace.get(currentThreadId)
         setWorkspacePath(path)
+        
+        // If a folder is linked, load files from disk
+        if (path) {
+          const result = await window.api.workspace.loadFromDisk(currentThreadId)
+          if (result.success && result.files) {
+            setWorkspaceFiles(result.files)
+          }
+        }
       }
     }
-    loadWorkspacePath()
-  }, [currentThreadId, setWorkspacePath])
+    loadWorkspace()
+  }, [currentThreadId, setWorkspacePath, setWorkspaceFiles])
   
   // Handle selecting a workspace folder
   async function handleSelectFolder() {
@@ -457,6 +465,11 @@ function FilesContent() {
       const path = await window.api.workspace.select(currentThreadId)
       if (path) {
         setWorkspacePath(path)
+        // Load files from the newly selected folder
+        const result = await window.api.workspace.loadFromDisk(currentThreadId)
+        if (result.success && result.files) {
+          setWorkspaceFiles(result.files)
+        }
       }
     } catch (e) {
       console.error('[FilesContent] Select folder error:', e)

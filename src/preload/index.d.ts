@@ -52,6 +52,17 @@ interface CustomAPI {
       targetPath?: string
       error?: string
     }>
+    loadFromDisk: (threadId: string) => Promise<{
+      success: boolean
+      files: Array<{
+        path: string
+        is_dir: boolean
+        size?: number
+        modified_at?: string
+      }>
+      workspacePath?: string
+      error?: string
+    }>
   }
 }
 
