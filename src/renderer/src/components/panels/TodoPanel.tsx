@@ -35,6 +35,7 @@ const STATUS_CONFIG = {
 
 export function TodoPanel(): React.JSX.Element {
   const { todos } = useAppStore()
+  console.log(111, todos)
   const [completedExpanded, setCompletedExpanded] = useState(false)
 
   // Group todos by status

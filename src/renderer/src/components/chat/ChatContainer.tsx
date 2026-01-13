@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Send, Square, Loader2 } from 'lucide-react'
 import { useStream } from '@langchain/langgraph-sdk/react'
+import type { InferAgentState } from 'langchain'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAppStore } from '@/lib/store'
@@ -17,12 +18,6 @@ interface ChatContainerProps {
 }
 
 // Define custom event data types
-interface TodoEventData {
-  id?: string
-  content?: string
-  status?: string
-}
-
 interface FileEventData {
   path: string
   is_dir?: boolean
@@ -50,7 +45,6 @@ interface MessageEventData {
 interface CustomEventData {
   type?: string
   message?: MessageEventData
-  todos?: TodoEventData[]
   files?: FileEventData[]
   path?: string
   subagents?: SubagentEventData[]
@@ -105,21 +99,6 @@ export function ChatContainer({ threadId }: ChatContainerProps): React.JSX.Eleme
             appendMessage(storeMsg)
           }
           break
-        case 'todos':
-          if (Array.isArray(data.todos)) {
-            setTodos(
-              data.todos.map((t) => ({
-                id: t.id || crypto.randomUUID(),
-                content: t.content || '',
-                status: (t.status || 'pending') as
-                  | 'pending'
-                  | 'in_progress'
-                  | 'completed'
-                  | 'cancelled'
-              }))
-            )
-          }
-          break
         case 'workspace':
           if (Array.isArray(data.files)) {
             setWorkspaceFiles(
@@ -155,7 +134,7 @@ export function ChatContainer({ threadId }: ChatContainerProps): React.JSX.Eleme
           break
       }
     },
-    [setTodos, setWorkspaceFiles, setWorkspacePath, setSubagents, setPendingApproval, appendMessage]
+    [setWorkspaceFiles, setWorkspacePath, setSubagents, setPendingApproval, appendMessage]
   )
 
   // Use the useStream hook with our custom transport
@@ -170,6 +149,21 @@ export function ChatContainer({ threadId }: ChatContainerProps): React.JSX.Eleme
       console.error('[ChatContainer] Stream error:', error)
     }
   })
+
+  // Sync todos from stream state
+  const agentValues = stream.values as unknown as InferAgentState<DeepAgent>
+  useEffect(() => {
+    const todos = agentValues.todos
+    if (Array.isArray(todos)) {
+      setTodos(
+        todos.map((t: { id?: string; content?: string; status?: string }) => ({
+          id: t.id || crypto.randomUUID(),
+          content: t.content || '',
+          status: (t.status || 'pending') as 'pending' | 'in_progress' | 'completed' | 'cancelled'
+        }))
+      )
+    }
+  }, [agentValues.todos, setTodos])
 
   // Refresh threads when loading state changes from true to false (stream completed)
   const prevLoadingRef = useRef(false)
@@ -201,7 +195,9 @@ export function ChatContainer({ threadId }: ChatContainerProps): React.JSX.Eleme
 
   // Get the actual scrollable viewport element from Radix ScrollArea
   const getViewport = useCallback(() => {
-    return scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement | null
+    return scrollRef.current?.querySelector(
+      '[data-radix-scroll-area-viewport]'
+    ) as HTMLDivElement | null
   }, [])
 
   // Track scroll position to determine if user is at bottom
