@@ -32,23 +32,32 @@ Thank you for your interest in contributing to openwork! This document provides 
 
 ```
 openwork/
-├── electron/           # Electron main process
-│   ├── main.ts         # App entry point
-│   ├── preload.ts      # Context bridge
-│   ├── ipc/            # IPC handlers
-│   ├── db/             # SQLite/Drizzle schema
-│   └── agent/          # DeepAgentsJS runtime
-├── src/                # React renderer
-│   ├── components/     # UI components
-│   │   ├── ui/         # Base shadcn components
-│   │   ├── chat/       # Chat interface
-│   │   ├── sidebar/    # Thread sidebar
-│   │   ├── panels/     # Right panel tabs
-│   │   └── hitl/       # Approval dialogs
-│   ├── lib/            # Utilities and store
-│   └── types.ts        # TypeScript types
-├── public/             # Static assets
-└── bin/                # CLI launcher
+├── src/
+│   ├── main/               # Electron main process
+│   │   ├── index.ts        # App entry point
+│   │   ├── agent/          # DeepAgents runtime
+│   │   ├── checkpointer/   # LangGraph checkpointing
+│   │   ├── db/             # SQLite database
+│   │   ├── ipc/            # IPC handlers
+│   │   └── services/       # Business logic services
+│   ├── preload/            # Electron preload/context bridge
+│   │   └── index.ts
+│   └── renderer/           # React frontend
+│       └── src/
+│           ├── App.tsx
+│           ├── index.css   # Tailwind + design system
+│           ├── components/
+│           │   ├── ui/     # Base shadcn components
+│           │   ├── chat/   # Chat interface
+│           │   ├── sidebar/# Thread sidebar
+│           │   ├── panels/ # Right panel tabs
+│           │   ├── hitl/   # Human-in-the-loop dialogs
+│           │   ├── settings/
+│           │   └── tabs/
+│           └── lib/        # Utilities and store
+├── bin/                    # CLI launcher
+├── public/                 # Static assets
+└── resources/              # Electron resources
 ```
 
 ## Code Style
@@ -130,6 +139,26 @@ Use conventional commits:
 - `style:` Code style changes (formatting)
 - `refactor:` Code refactoring
 - `test:` Test additions/changes
+- `chore:` Build/tooling changes
+
+## Issue Labels
+
+We use labels to organize issues:
+
+| Label | Description |
+|-------|-------------|
+| `bug` | Something isn't working |
+| `enhancement` | New feature or improvement |
+| `good first issue` | Good for newcomers |
+| `help wanted` | Extra attention needed |
+| `documentation` | Documentation improvements |
+| `question` | Further information requested |
+| `wontfix` | This will not be worked on |
+
+## Questions?
+
+Open an issue or start a discussion on GitHub.
+changes
 - `chore:` Build/tooling changes
 
 ## Questions?

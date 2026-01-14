@@ -1,5 +1,9 @@
 # openwork
 
+[![CI](https://github.com/langchain-ai/openwork/actions/workflows/ci.yml/badge.svg)](https://github.com/langchain-ai/openwork/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/openwork.svg)](https://www.npmjs.com/package/openwork)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A tactical agent interface for [deepagentsjs](https://github.com/langchain-ai/deepagentsjs) - an opinionated harness for building deep agents with filesystem capabilities, planning, and subagent delegation.
 
 ![openwork screenshot](docs/screenshot.png)
