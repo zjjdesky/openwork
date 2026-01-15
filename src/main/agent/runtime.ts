@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { createDeepAgent, FilesystemBackend } from 'deepagents'
-import { app } from 'electron'
-import { join } from 'path'
-import { getDefaultModel, getApiKey } from '../ipc/models'
+import { getDefaultModel } from '../ipc/models'
+import { getApiKey, getCheckpointDbPath } from '../storage'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatOpenAI } from '@langchain/openai'
 import { SqlJsSaver } from '../checkpointer/sqljs-saver'
@@ -40,8 +39,7 @@ let checkpointer: SqlJsSaver | null = null
 
 export async function getCheckpointer(): Promise<SqlJsSaver> {
   if (!checkpointer) {
-    const dbPath = join(app.getPath('userData'), 'langgraph.sqlite')
-    checkpointer = new SqlJsSaver(dbPath)
+    checkpointer = new SqlJsSaver(getCheckpointDbPath())
     await checkpointer.initialize()
   }
   return checkpointer

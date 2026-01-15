@@ -2,13 +2,14 @@ import { IpcMain, dialog, app } from 'electron'
 import Store from 'electron-store'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import type { ModelConfig, Provider, ProviderId } from '../types'
+import type { ModelConfig, Provider } from '../types'
 import { startWatching, stopWatching } from '../services/workspace-watcher'
+import { getOpenworkDir, getApiKey, setApiKey, deleteApiKey, hasApiKey } from '../storage'
 
-// Encrypted store for API keys
+// Store for non-sensitive settings only (no encryption needed)
 const store = new Store({
-  name: 'openwork-settings',
-  encryptionKey: 'openwork-encryption-key-v1' // In production, derive from machine ID
+  name: 'settings',
+  cwd: getOpenworkDir()
 })
 
 // Provider configurations
@@ -16,13 +17,6 @@ const PROVIDERS: Omit<Provider, 'hasApiKey'>[] = [
   { id: 'anthropic', name: 'Anthropic' },
   { id: 'openai', name: 'OpenAI' }
 ]
-
-// Environment variable mapping
-const ENV_VAR_MAP: Record<ProviderId, string> = {
-  anthropic: 'ANTHROPIC_API_KEY',
-  openai: 'OPENAI_API_KEY',
-  ollama: '' // Ollama doesn't need API key
-}
 
 // Available models configuration (updated Jan 2026)
 const AVAILABLE_MODELS: ModelConfig[] = [
@@ -181,34 +175,22 @@ export function registerModelHandlers(ipcMain: IpcMain): void {
     store.set('defaultModel', modelId)
   })
 
-  // Set API key for a provider
+  // Set API key for a provider (stored in ~/.openwork/.env)
   ipcMain.handle(
     'models:setApiKey',
     async (_event, { provider, apiKey }: { provider: string; apiKey: string }) => {
-      store.set(`apiKeys.${provider}`, apiKey)
-
-      // Also set as environment variable for the current session
-      const envVar = ENV_VAR_MAP[provider as ProviderId]
-      if (envVar) {
-        process.env[envVar] = apiKey
-      }
+      setApiKey(provider, apiKey)
     }
   )
 
-  // Get API key for a provider
+  // Get API key for a provider (from ~/.openwork/.env or process.env)
   ipcMain.handle('models:getApiKey', async (_event, provider: string) => {
-    return store.get(`apiKeys.${provider}`, null) as string | null
+    return getApiKey(provider) ?? null
   })
 
   // Delete API key for a provider
   ipcMain.handle('models:deleteApiKey', async (_event, provider: string) => {
-    store.delete(`apiKeys.${provider}`)
-
-    // Also clear environment variable for the current session
-    const envVar = ENV_VAR_MAP[provider as ProviderId]
-    if (envVar) {
-      delete process.env[envVar]
-    }
+    deleteApiKey(provider)
   })
 
   // List providers with their API key status
@@ -432,24 +414,8 @@ export function registerModelHandlers(ipcMain: IpcMain): void {
   )
 }
 
-function hasApiKey(provider: string): boolean {
-  // Check store first
-  const storedKey = store.get(`apiKeys.${provider}`) as string | undefined
-  if (storedKey) return true
-
-  // Check environment variables
-  const envVar = ENV_VAR_MAP[provider as ProviderId]
-  return envVar ? !!process.env[envVar] : false
-}
-
-// Export for use in agent runtime
-export function getApiKey(provider: string): string | undefined {
-  const storedKey = store.get(`apiKeys.${provider}`) as string | undefined
-  if (storedKey) return storedKey
-
-  const envVar = ENV_VAR_MAP[provider as ProviderId]
-  return envVar ? process.env[envVar] : undefined
-}
+// Re-export getApiKey from storage for use in agent runtime
+export { getApiKey } from '../storage'
 
 export function getDefaultModel(): string {
   return store.get('defaultModel', 'claude-sonnet-4-5-20250929') as string

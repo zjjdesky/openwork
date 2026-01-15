@@ -1,10 +1,7 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { dirname, join } from 'path'
-import { app } from 'electron'
-
-// Database path in user data directory
-const getDbPath = (): string => join(app.getPath('userData'), 'openwork.sqlite')
+import { dirname } from 'path'
+import { getDbPath } from '../storage'
 
 let db: SqlJsDatabase | null = null
 let saveTimer: ReturnType<typeof setTimeout> | null = null
