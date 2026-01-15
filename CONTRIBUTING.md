@@ -1,6 +1,6 @@
-# Contributing to deepwork
+# Contributing to openwork
 
-Thank you for your interest in contributing to deepwork! This document provides guidelines for development and contribution.
+Thank you for your interest in contributing to openwork! This document provides guidelines for development and contribution.
 
 ## Development Setup
 
@@ -14,8 +14,8 @@ Thank you for your interest in contributing to deepwork! This document provides 
 
 1. Fork and clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/deepwork.git
-   cd deepwork
+   git clone https://github.com/YOUR_USERNAME/openwork.git
+   cd openwork
    ```
 
 2. Install dependencies:
@@ -31,7 +31,7 @@ Thank you for your interest in contributing to deepwork! This document provides 
 ## Project Structure
 
 ```
-deepwork/
+openwork/
 ├── src/
 │   ├── main/               # Electron main process
 │   │   ├── index.ts        # App entry point
@@ -82,7 +82,7 @@ deepwork/
 
 ## Design System
 
-deepwork uses a tactical/SCADA-inspired design system:
+openwork uses a tactical/SCADA-inspired design system:
 
 ### Colors
 

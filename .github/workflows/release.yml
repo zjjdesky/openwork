@@ -74,25 +74,25 @@ jobs:
         with:
           name: v${{ steps.version.outputs.version }}
           body: |
-            ## deepwork v${{ steps.version.outputs.version }}
+            ## openwork v${{ steps.version.outputs.version }}
 
             ### Installation
 
             ```bash
             # Run directly
-            npx deepwork
+            npx openwork
 
             # Or install globally
-            npm install -g deepwork
-            deepwork
+            npm install -g openwork
+            openwork
             ```
 
             Requires Node.js 18+. Electron is installed automatically as a dependency.
 
             ### Links
 
-            - [Documentation](https://github.com/langchain-ai/deepwork#readme)
-            - [npm package](https://www.npmjs.com/package/deepwork)
+            - [Documentation](https://github.com/langchain-ai/openwork#readme)
+            - [npm package](https://www.npmjs.com/package/openwork)
           draft: false
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
         env:

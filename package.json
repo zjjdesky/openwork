@@ -1,5 +1,5 @@
 {
-  "name": "deepwork",
+  "name": "openwork",
   "version": "0.1.0",
   "description": "A tactical agent interface for deepagentsjs",
   "main": "./out/main/index.js",
@@ -11,17 +11,17 @@
     "README.md"
   ],
   "bin": {
-    "deepwork": "./bin/cli.js"
+    "openwork": "./bin/cli.js"
   },
   "author": "LangChain",
   "license": "MIT",
-  "homepage": "https://github.com/langchain-ai/deepwork",
+  "homepage": "https://github.com/langchain-ai/openwork",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/langchain-ai/deepwork.git"
+    "url": "git+https://github.com/langchain-ai/openwork.git"
   },
   "bugs": {
-    "url": "https://github.com/langchain-ai/deepwork/issues"
+    "url": "https://github.com/langchain-ai/openwork/issues"
   },
   "keywords": [
     "ai",

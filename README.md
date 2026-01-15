@@ -1,12 +1,12 @@
-# deepwork
+# openwork
 
-[![CI](https://github.com/langchain-ai/deepwork/actions/workflows/ci.yml/badge.svg)](https://github.com/langchain-ai/deepwork/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/deepwork.svg)](https://www.npmjs.com/package/deepwork)
+[![CI](https://github.com/langchain-ai/openwork/actions/workflows/ci.yml/badge.svg)](https://github.com/langchain-ai/openwork/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/openwork.svg)](https://www.npmjs.com/package/openwork)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A tactical agent interface for [deepagentsjs](https://github.com/langchain-ai/deepagentsjs) - an opinionated harness for building deep agents with filesystem capabilities, planning, and subagent delegation.
 
-![deepwork screenshot](docs/screenshot.png)
+![openwork screenshot](docs/screenshot.png)
 
 ## Features
 
@@ -24,11 +24,11 @@ A tactical agent interface for [deepagentsjs](https://github.com/langchain-ai/de
 
 ```bash
 # Run directly
-npx deepwork
+npx openwork
 
 # Or install globally
-npm install -g deepwork
-deepwork
+npm install -g openwork
+openwork
 ```
 
 Requires Node.js 18+. Electron is installed automatically as a dependency.
@@ -36,8 +36,8 @@ Requires Node.js 18+. Electron is installed automatically as a dependency.
 ### From Source
 
 ```bash
-git clone https://github.com/langchain-ai/deepwork.git
-cd deepwork
+git clone https://github.com/langchain-ai/openwork.git
+cd openwork
 npm install
 npm run dev
 ```
@@ -46,7 +46,7 @@ npm run dev
 
 ### API Keys
 
-deepwork supports multiple LLM providers. Set your API keys via:
+openwork supports multiple LLM providers. Set your API keys via:
 
 1. **Environment Variables** (recommended)
    ```bash
@@ -67,7 +67,7 @@ deepwork supports multiple LLM providers. Set your API keys via:
 
 ## Architecture
 
-deepwork is built with:
+openwork is built with:
 
 - **Electron** - Cross-platform desktop framework
 - **React** - UI components with tactical/SCADA-inspired design
@@ -127,7 +127,7 @@ To publish a new release:
 
 ## Design System
 
-deepwork uses a tactical/SCADA-inspired design system optimized for:
+openwork uses a tactical/SCADA-inspired design system optimized for:
 
 - **Information density** - Dense layouts for monitoring agent activity
 - **Status at a glance** - Color-coded status indicators (nominal, warning, critical)

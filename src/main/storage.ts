@@ -2,8 +2,8 @@ import { homedir } from 'os'
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 
-const DEEPWORK_DIR = join(homedir(), '.deepwork')
-const ENV_FILE = join(DEEPWORK_DIR, '.env')
+const OPENWORK_DIR = join(homedir(), '.openwork')
+const ENV_FILE = join(OPENWORK_DIR, '.env')
 
 // Environment variable names for each provider
 const ENV_VAR_NAMES: Record<string, string> = {
@@ -11,19 +11,19 @@ const ENV_VAR_NAMES: Record<string, string> = {
   openai: 'OPENAI_API_KEY'
 }
 
-export function getDeepworkDir(): string {
-  if (!existsSync(DEEPWORK_DIR)) {
-    mkdirSync(DEEPWORK_DIR, { recursive: true })
+export function getOpenworkDir(): string {
+  if (!existsSync(OPENWORK_DIR)) {
+    mkdirSync(OPENWORK_DIR, { recursive: true })
   }
-  return DEEPWORK_DIR
+  return OPENWORK_DIR
 }
 
 export function getDbPath(): string {
-  return join(getDeepworkDir(), 'deepwork.sqlite')
+  return join(getOpenworkDir(), 'openwork.sqlite')
 }
 
 export function getCheckpointDbPath(): string {
-  return join(getDeepworkDir(), 'langgraph.sqlite')
+  return join(getOpenworkDir(), 'langgraph.sqlite')
 }
 
 export function getEnvFilePath(): string {
@@ -53,7 +53,7 @@ function parseEnvFile(): Record<string, string> {
 
 // Write object back to .env file
 function writeEnvFile(env: Record<string, string>): void {
-  getDeepworkDir() // ensure dir exists
+  getOpenworkDir() // ensure dir exists
   const lines = Object.entries(env)
     .filter(([_, v]) => v)
     .map(([k, v]) => `${k}=${v}`)
