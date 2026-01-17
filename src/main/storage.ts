@@ -1,6 +1,6 @@
 import { homedir } from 'os'
 import { join } from 'path'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 
 const OPENWORK_DIR = join(homedir(), '.openwork')
 const ENV_FILE = join(OPENWORK_DIR, '.env')
@@ -25,6 +25,25 @@ export function getDbPath(): string {
 
 export function getCheckpointDbPath(): string {
   return join(getOpenworkDir(), 'langgraph.sqlite')
+}
+
+export function getThreadCheckpointDir(): string {
+  const dir = join(getOpenworkDir(), 'threads')
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true })
+  }
+  return dir
+}
+
+export function getThreadCheckpointPath(threadId: string): string {
+  return join(getThreadCheckpointDir(), `${threadId}.sqlite`)
+}
+
+export function deleteThreadCheckpoint(threadId: string): void {
+  const path = getThreadCheckpointPath(threadId)
+  if (existsSync(path)) {
+    unlinkSync(path)
+  }
 }
 
 export function getEnvFilePath(): string {

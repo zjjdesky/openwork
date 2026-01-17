@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { createDeepAgent } from 'deepagents'
 import { getDefaultModel } from '../ipc/models'
-import { getApiKey, getCheckpointDbPath } from '../storage'
+import { getApiKey, getThreadCheckpointPath } from '../storage'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatOpenAI } from '@langchain/openai'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
@@ -36,15 +36,26 @@ function getSystemPrompt(workspacePath: string): string {
   return workingDirSection + BASE_SYSTEM_PROMPT
 }
 
-// Singleton checkpointer instance
-let checkpointer: SqlJsSaver | null = null
+// Per-thread checkpointer cache
+const checkpointers = new Map<string, SqlJsSaver>()
 
-export async function getCheckpointer(): Promise<SqlJsSaver> {
+export async function getCheckpointer(threadId: string): Promise<SqlJsSaver> {
+  let checkpointer = checkpointers.get(threadId)
   if (!checkpointer) {
-    checkpointer = new SqlJsSaver(getCheckpointDbPath())
+    const dbPath = getThreadCheckpointPath(threadId)
+    checkpointer = new SqlJsSaver(dbPath)
     await checkpointer.initialize()
+    checkpointers.set(threadId, checkpointer)
   }
   return checkpointer
+}
+
+export async function closeCheckpointer(threadId: string): Promise<void> {
+  const checkpointer = checkpointers.get(threadId)
+  if (checkpointer) {
+    await checkpointer.close()
+    checkpointers.delete(threadId)
+  }
 }
 
 // Get the appropriate model instance based on configuration
@@ -95,6 +106,8 @@ function getModelInstance(modelId?: string): ChatAnthropic | ChatOpenAI | ChatGo
 }
 
 export interface CreateAgentRuntimeOptions {
+  /** Thread ID - REQUIRED for per-thread checkpointing */
+  threadId: string
   /** Model ID to use (defaults to configured default model) */
   modelId?: string
   /** Workspace path - REQUIRED for agent to operate on files */
@@ -106,7 +119,11 @@ export type AgentRuntime = ReturnType<typeof createDeepAgent>
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createAgentRuntime(options: CreateAgentRuntimeOptions) {
-  const { modelId, workspacePath } = options
+  const { threadId, modelId, workspacePath } = options
+
+  if (!threadId) {
+    throw new Error('Thread ID is required for checkpointing.')
+  }
 
   if (!workspacePath) {
     throw new Error(
@@ -115,13 +132,14 @@ export async function createAgentRuntime(options: CreateAgentRuntimeOptions) {
   }
 
   console.log('[Runtime] Creating agent runtime...')
+  console.log('[Runtime] Thread ID:', threadId)
   console.log('[Runtime] Workspace path:', workspacePath)
 
   const model = getModelInstance(modelId)
   console.log('[Runtime] Model instance created:', typeof model)
 
-  const checkpointer = await getCheckpointer()
-  console.log('[Runtime] Checkpointer ready')
+  const checkpointer = await getCheckpointer(threadId)
+  console.log('[Runtime] Checkpointer ready for thread:', threadId)
 
   const backend = new LocalSandbox({
     rootDir: workspacePath,
@@ -161,10 +179,9 @@ The workspace root is: ${workspacePath}`
 
 export type DeepAgent = ReturnType<typeof createDeepAgent>
 
-// Clean up resources
+// Clean up all checkpointer resources
 export async function closeRuntime(): Promise<void> {
-  if (checkpointer) {
-    await checkpointer.close()
-    checkpointer = null
-  }
+  const closePromises = Array.from(checkpointers.values()).map((cp) => cp.close())
+  await Promise.all(closePromises)
+  checkpointers.clear()
 }

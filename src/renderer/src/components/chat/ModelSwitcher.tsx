@@ -3,6 +3,7 @@ import { ChevronDown, Check, AlertCircle, Key } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/lib/store'
+import { useCurrentThread } from '@/lib/thread-context'
 import { cn } from '@/lib/utils'
 import { ApiKeyDialog } from './ApiKeyDialog'
 import type { Provider, ProviderId } from '@/types'
@@ -46,20 +47,18 @@ const FALLBACK_PROVIDERS: Provider[] = [
   { id: 'google', name: 'Google', hasApiKey: false }
 ]
 
-export function ModelSwitcher() {
+interface ModelSwitcherProps {
+  threadId: string
+}
+
+export function ModelSwitcher({ threadId }: ModelSwitcherProps) {
   const [open, setOpen] = useState(false)
   const [selectedProviderId, setSelectedProviderId] = useState<ProviderId | null>(null)
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false)
   const [apiKeyProvider, setApiKeyProvider] = useState<Provider | null>(null)
   
-  const { 
-    models, 
-    providers,
-    currentModel, 
-    loadModels, 
-    loadProviders,
-    setCurrentModel 
-  } = useAppStore()
+  const { models, providers, loadModels, loadProviders } = useAppStore()
+  const { currentModel, setCurrentModel } = useCurrentThread(threadId)
 
   // Load models and providers on mount
   useEffect(() => {

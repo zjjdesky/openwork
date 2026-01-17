@@ -3,6 +3,7 @@ import { CheckCircle2, Circle, Clock, XCircle, ChevronRight, ChevronDown } from 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { useAppStore } from '@/lib/store'
+import { useThreadState } from '@/lib/thread-context'
 import { cn } from '@/lib/utils'
 import type { Todo } from '@/types'
 
@@ -34,7 +35,9 @@ const STATUS_CONFIG = {
 }
 
 export function TodoPanel(): React.JSX.Element {
-  const { todos } = useAppStore()
+  const { currentThreadId } = useAppStore()
+  const threadState = useThreadState(currentThreadId)
+  const todos = threadState?.todos ?? []
   const [completedExpanded, setCompletedExpanded] = useState(false)
 
   // Group todos by status

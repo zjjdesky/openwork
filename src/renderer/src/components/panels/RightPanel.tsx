@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
+import { useThreadState } from '@/lib/thread-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { Todo } from '@/types'
@@ -115,7 +116,11 @@ function ResizeHandle({ onDrag }: ResizeHandleProps): React.JSX.Element {
 }
 
 export function RightPanel(): React.JSX.Element {
-  const { todos, workspaceFiles, subagents } = useAppStore()
+  const { currentThreadId } = useAppStore()
+  const threadState = useThreadState(currentThreadId)
+  const todos = threadState?.todos ?? []
+  const workspaceFiles = threadState?.workspaceFiles ?? []
+  const subagents = threadState?.subagents ?? []
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [tasksOpen, setTasksOpen] = useState(true)
@@ -395,7 +400,9 @@ const STATUS_CONFIG = {
 }
 
 function TasksContent(): React.JSX.Element {
-  const { todos } = useAppStore()
+  const { currentThreadId } = useAppStore()
+  const threadState = useThreadState(currentThreadId)
+  const todos = threadState?.todos ?? []
   const [completedExpanded, setCompletedExpanded] = useState(false)
 
   if (todos.length === 0) {
@@ -502,15 +509,19 @@ function TaskItem({ todo }: { todo: Todo }): React.JSX.Element {
 }
 
 function FilesContent(): React.JSX.Element {
-  const { workspaceFiles, workspacePath, currentThreadId, setWorkspacePath, setWorkspaceFiles } =
-    useAppStore()
+  const { currentThreadId } = useAppStore()
+  const threadState = useThreadState(currentThreadId)
+  const workspaceFiles = threadState?.workspaceFiles ?? []
+  const workspacePath = threadState?.workspacePath ?? null
+  const setWorkspacePath = threadState?.setWorkspacePath
+  const setWorkspaceFiles = threadState?.setWorkspaceFiles
   const [syncing, setSyncing] = useState(false)
   const [syncSuccess] = useState(false)
 
   // Load workspace path and files for current thread
   useEffect(() => {
     async function loadWorkspace(): Promise<void> {
-      if (currentThreadId) {
+      if (currentThreadId && setWorkspacePath && setWorkspaceFiles) {
         const path = await window.api.workspace.get(currentThreadId)
         setWorkspacePath(path)
 
@@ -524,11 +535,12 @@ function FilesContent(): React.JSX.Element {
       }
     }
     loadWorkspace()
-  }, [currentThreadId, setWorkspacePath, setWorkspaceFiles])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentThreadId])
 
   // Listen for file changes from the workspace watcher
   useEffect(() => {
-    if (!currentThreadId) return
+    if (!currentThreadId || !setWorkspaceFiles) return
 
     const cleanup = window.api.workspace.onFilesChanged(async (data) => {
       // Only reload if the event is for the current thread
@@ -542,11 +554,12 @@ function FilesContent(): React.JSX.Element {
     })
 
     return cleanup
-  }, [currentThreadId, setWorkspaceFiles])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentThreadId])
 
   // Handle selecting a workspace folder
   async function handleSelectFolder(): Promise<void> {
-    if (!currentThreadId) return
+    if (!currentThreadId || !setWorkspacePath || !setWorkspaceFiles) return
     setSyncing(true)
     try {
       const path = await window.api.workspace.select(currentThreadId)
@@ -781,7 +794,9 @@ function FileTreeNode({
   expanded: Set<string>
   onToggle: (path: string) => void
 }): React.JSX.Element {
-  const { openFile } = useAppStore()
+  const { currentThreadId } = useAppStore()
+  const threadState = useThreadState(currentThreadId)
+  const openFile = threadState?.openFile
   const isExpanded = expanded.has(node.path)
   const hasChildren = node.children.length > 0
   const paddingLeft = 8 + depth * 16
@@ -789,7 +804,7 @@ function FileTreeNode({
   const handleClick = (): void => {
     if (node.is_dir) {
       onToggle(node.path)
-    } else {
+    } else if (openFile) {
       // Open file in a new tab
       openFile(node.path, node.name)
     }
@@ -905,7 +920,9 @@ function FileIcon({
 }
 
 function AgentsContent(): React.JSX.Element {
-  const { subagents } = useAppStore()
+  const { currentThreadId } = useAppStore()
+  const threadState = useThreadState(currentThreadId)
+  const subagents = threadState?.subagents ?? []
 
   if (subagents.length === 0) {
     return (
